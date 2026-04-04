@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "fufu-toolbox (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "fufu-toolbox (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

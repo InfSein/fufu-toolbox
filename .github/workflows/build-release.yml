@@ -1,0 +1,83 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Extract Version from Package.appxmanifest
+      id: get_version
+      shell: pwsh
+      run: |
+        [xml]$manifest = Get-Content Package.appxmanifest
+        $version = $manifest.Package.Identity.Version
+        echo "VERSION=$version" >> $env:GITHUB_ENV
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+
+    - name: Create Self-Signed certificate
+      shell: pwsh
+      run: |
+        $certPassword = ConvertTo-SecureString -String "Password123" -Force -AsPlainText
+        $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=AppPublisher" -KeyUsage DigitalSignature -FriendlyName "FufuToolboxCert" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+        Export-PfxCertificate -Cert $cert -FilePath "GitHubActionsWorkflow.pfx" -Password $certPassword
+
+    - name: Build and Publish (MSIX)
+      shell: pwsh
+      run: |
+        dotnet publish fufu-toolbox.csproj -c Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:PublishReadyToRun=false -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateKeyFile="GitHubActionsWorkflow.pfx" -p:PackageCertificatePassword="Password123" -p:UapAppxPackageBuildMode=SideloadOnly -p:AppxBundle=Never
+
+    - name: Find and Prepare Artifacts
+      shell: pwsh
+      run: |
+        $version = "${{ env.VERSION }}"
+        $artifactDir = "fufu-toolbox-v$version"
+        New-Item -ItemType Directory -Path $artifactDir
+        
+        echo "Searching for .msix files..."
+        $msixFiles = Get-ChildItem -Path . -Recurse -Filter "*.msix" | Where-Object { $_.FullName -notmatch "obj" }
+        if ($msixFiles.Count -eq 0) {
+            echo "::error::No .msix files found! Printing directory tree for debugging:"
+            Get-ChildItem -Path . -Recurse | Select-Object FullName
+            exit 1
+        }
+        
+        foreach ($file in $msixFiles) {
+            echo "Found MSIX: $($file.FullName)"
+            Copy-Item -Path $file.FullName -Destination $artifactDir
+        }
+        
+        $appInstallerFiles = Get-ChildItem -Path . -Recurse -Filter "*.appinstaller" | Where-Object { $_.FullName -notmatch "obj" }
+        foreach ($file in $appInstallerFiles) {
+            echo "Found AppInstaller: $($file.FullName)"
+            Copy-Item -Path $file.FullName -Destination $artifactDir
+        }
+        
+        Compress-Archive -Path "$artifactDir\*" -DestinationPath "fufu-toolbox-v$version.zip"
+
+    - name: Create or Update Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ env.VERSION }}
+        name: Release v${{ env.VERSION }}
+        draft: false
+        prerelease: false
+        files: |
+          fufu-toolbox-v${{ env.VERSION }}.zip
+          **/*.msix
+        token: ${{ secrets.GITHUB_TOKEN }}
+        allow_updates: true
