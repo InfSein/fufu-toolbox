@@ -23,10 +23,12 @@ public partial class App : Application
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<HomeViewModel>();
             services.AddSingleton<MergeTxtViewModel>();
+            services.AddSingleton<MergePdfViewModel>();
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<ITxtMergeService, TxtMergeService>();
+            services.AddSingleton<IPdfMergeService, PdfMergeService>();
         })
         .Build();
 

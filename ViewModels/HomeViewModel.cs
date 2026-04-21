@@ -26,6 +26,13 @@ public sealed class HomeViewModel
         },
         new ToolCardItem
         {
+            Name = "合并PDF",
+            Description = "检索目录内的 PDF 和图片，自选并排序后合并输出。",
+            Status = "已接入",
+            Category = "文件与路径"
+        },
+        new ToolCardItem
+        {
             Name = "批量重命名",
             Description = "按规则一次性改很多文件名。",
             Status = "待实现",
