@@ -33,6 +33,13 @@ public sealed class HomeViewModel
         },
         new ToolCardItem
         {
+            Name = "FFXIV物品翻译",
+            Description = "批量翻译最终幻想XIV物品名，支持保留行前缀。",
+            Status = "已接入",
+            Category = "网络与接口"
+        },
+        new ToolCardItem
+        {
             Name = "批量重命名",
             Description = "按规则一次性改很多文件名。",
             Status = "待实现",
