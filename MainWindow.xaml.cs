@@ -1,6 +1,8 @@
-﻿using Microsoft.UI.Windowing;
+﻿using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Windows.UI;
 using fufu_toolbox.Services;
 using fufu_toolbox.ViewModels;
 
@@ -28,6 +30,7 @@ public sealed partial class MainWindow : Window
 
         _navigationService.Initialize(NavFrame);
         NavFrame.Navigated += NavFrame_Navigated;
+        RootLayout.ActualThemeChanged += RootLayout_ActualThemeChanged;
 
         _themeService.ThemeChanged += OnThemeChanged;
         ApplyTheme(_themeService.CurrentTheme);
@@ -73,6 +76,12 @@ public sealed partial class MainWindow : Window
         ApplyTheme(mode);
     }
 
+    // 在系统主题变化时同步刷新标题栏按钮可读性。
+    private void RootLayout_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        ApplyTitleBarButtonTheme();
+    }
+
     // 将主题模式映射到 WinUI 的主题值。
     private void ApplyTheme(AppThemeMode mode)
     {
@@ -82,6 +91,37 @@ public sealed partial class MainWindow : Window
             AppThemeMode.Dark => ElementTheme.Dark,
             _ => ElementTheme.Default
         };
+
+        ApplyTitleBarButtonTheme();
+    }
+
+    // 根据当前主题设置右上角窗口按钮颜色，提升浅色主题下辨识度。
+    private void ApplyTitleBarButtonTheme()
+    {
+        AppWindowTitleBar titleBar = AppWindow.TitleBar;
+        bool isDarkTheme = RootLayout.ActualTheme == ElementTheme.Dark;
+
+        if (isDarkTheme)
+        {
+            titleBar.ButtonForegroundColor = ColorHelper.FromArgb(255, 243, 243, 243);
+            titleBar.ButtonBackgroundColor = Colors.Transparent;
+            titleBar.ButtonHoverForegroundColor = Colors.White;
+            titleBar.ButtonHoverBackgroundColor = ColorHelper.FromArgb(255, 52, 52, 52);
+            titleBar.ButtonPressedForegroundColor = Colors.White;
+            titleBar.ButtonPressedBackgroundColor = ColorHelper.FromArgb(255, 70, 70, 70);
+            titleBar.ButtonInactiveForegroundColor = ColorHelper.FromArgb(255, 148, 148, 148);
+            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+            return;
+        }
+
+        titleBar.ButtonForegroundColor = ColorHelper.FromArgb(255, 24, 24, 24);
+        titleBar.ButtonBackgroundColor = Colors.Transparent;
+        titleBar.ButtonHoverForegroundColor = Colors.Black;
+        titleBar.ButtonHoverBackgroundColor = ColorHelper.FromArgb(255, 230, 230, 230);
+        titleBar.ButtonPressedForegroundColor = Colors.Black;
+        titleBar.ButtonPressedBackgroundColor = ColorHelper.FromArgb(255, 210, 210, 210);
+        titleBar.ButtonInactiveForegroundColor = ColorHelper.FromArgb(255, 122, 122, 122);
+        titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
     }
 
     // 刷新返回按钮可见状态。
