@@ -46,6 +46,16 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItemSeparator />
+
+                <NavigationViewItemHeader Content="系统" />
+                <NavigationViewItem
+                    Content="端口管理"
+                    Tag="port-management">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE774;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
                 <NavigationViewItemHeader Content="文件处理" />
                 <NavigationViewItem
                     Content="合并TXT"
@@ -61,6 +71,7 @@
                         <FontIcon Glyph="&#xE8A5;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+
                 <NavigationViewItemHeader Content="FFXIV" />
                 <NavigationViewItem
                     Content="FFXIV物品翻译"
@@ -70,6 +81,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
+
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem
                     Content="设置"
@@ -79,6 +91,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.FooterMenuItems>
+
             <Frame x:Name="NavFrame" />
         </NavigationView>
     </Grid>

@@ -40,6 +40,13 @@ public sealed class HomeViewModel
         },
         new ToolCardItem
         {
+            Name = "端口管理",
+            Description = "查看端口占用，按端口或程序筛选，并可中止进程释放端口。",
+            Status = "已接入",
+            Category = "系统效率"
+        },
+        new ToolCardItem
+        {
             Name = "批量重命名",
             Description = "按规则一次性改很多文件名。",
             Status = "待实现",
