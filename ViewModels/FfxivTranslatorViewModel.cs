@@ -10,6 +10,8 @@ namespace fufu_toolbox.ViewModels;
 
 public sealed class FfxivTranslatorViewModel : INotifyPropertyChanged
 {
+    private const int TermsPreviewLimit = 20;
+
     private readonly IFfxivTranslatorService _translatorService;
 
     private string _inputText = string.Empty;
@@ -275,7 +277,7 @@ public sealed class FfxivTranslatorViewModel : INotifyPropertyChanged
 
         try
         {
-            Dictionary<string, string> matchedTerms = GetMatchedTerms(InputText);
+            Dictionary<string, string> matchedTerms = await GetMatchedTermsAsync(InputText);
 
             FfxivTranslationResponse response = await _translatorService.TranslateAsync(
                 InputText,
@@ -307,36 +309,51 @@ public sealed class FfxivTranslatorViewModel : INotifyPropertyChanged
         await SaveSettingsAsync();
     }
 
-    private Dictionary<string, string> GetMatchedTerms(string content)
+    // 在后台筛出当前文本真正命中的术语，避免大术语表阻塞界面。
+    private Task<Dictionary<string, string>> GetMatchedTermsAsync(string content)
     {
-        Dictionary<string, string> mergedTerms = new();
+        Dictionary<string, string> permanentTerms = new(PermanentTerms);
+        Dictionary<string, string> customTerms = new(CustomTerms);
 
-        foreach (var term in PermanentTerms)
+        return Task.Run(() =>
         {
-            mergedTerms[term.Key] = term.Value;
-        }
+            Dictionary<string, string> matchedTerms = new();
 
-        foreach (var term in CustomTerms)
-        {
-            mergedTerms[term.Key] = term.Value;
-        }
+            AddMatchedTerms(content, permanentTerms, matchedTerms);
+            AddMatchedTerms(content, customTerms, matchedTerms);
 
-        Dictionary<string, string> matchedTerms = new();
-        foreach (var term in mergedTerms)
+            return matchedTerms;
+        });
+    }
+
+    // 把命中的术语加入结果；后加入的自定术语会覆盖常驻术语。
+    private static void AddMatchedTerms(string content, Dictionary<string, string> terms, Dictionary<string, string> matchedTerms)
+    {
+        foreach (var term in terms)
         {
-            if (content.Contains(term.Key, StringComparison.Ordinal))
+            if (!string.IsNullOrEmpty(term.Key) && content.Contains(term.Key, StringComparison.Ordinal))
             {
                 matchedTerms[term.Key] = term.Value;
             }
         }
-
-        return matchedTerms;
     }
 
+    // 大术语表只显示摘要和前几项，避免弹窗渲染海量文本。
     private string FormatTermsDisplay(Dictionary<string, string> terms)
     {
         if (terms.Count == 0) return "（无）";
-        return string.Join("\n", terms.Select(t => $"{t.Key} -> {t.Value}"));
+
+        IEnumerable<string> previewLines = terms
+            .Take(TermsPreviewLimit)
+            .Select(t => $"{t.Key} -> {t.Value}");
+
+        string preview = string.Join("\n", previewLines);
+        if (terms.Count <= TermsPreviewLimit)
+        {
+            return $"{terms.Count} 条\n{preview}";
+        }
+
+        return $"{terms.Count} 条，仅显示前 {TermsPreviewLimit} 条预览：\n{preview}\n……";
     }
 
     private async Task SaveSettingsAsync()

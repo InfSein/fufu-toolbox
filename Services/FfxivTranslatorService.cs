@@ -42,6 +42,11 @@ public sealed class FfxivTranslatorService : IFfxivTranslatorService
     private const string SettingsFileName = "ffxiv_translator_settings.json";
     private const string DefaultPromptResourceName = "fufu_toolbox.Resources.default_prompt.md";
 
+    private static readonly JsonSerializerOptions IndentedJsonOptions = new()
+    {
+        WriteIndented = true
+    };
+
     private readonly HttpClient _httpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(120)
@@ -89,7 +94,7 @@ public sealed class FfxivTranslatorService : IFfxivTranslatorService
             }
 
             string json = await FileIO.ReadTextAsync(file);
-            FfxivTranslatorSettings? settings = JsonSerializer.Deserialize<FfxivTranslatorSettings>(json);
+            FfxivTranslatorSettings? settings = await DeserializeSettingsAsync(json, cancellationToken);
             return settings ?? CreateDefaultSettings();
         }
         catch
@@ -103,12 +108,7 @@ public sealed class FfxivTranslatorService : IFfxivTranslatorService
         StorageFolder localFolder = ApplicationData.Current.LocalFolder;
         StorageFile file = await localFolder.CreateFileAsync(SettingsFileName, CreationCollisionOption.ReplaceExisting);
 
-        JsonSerializerOptions options = new()
-        {
-            WriteIndented = true
-        };
-
-        string json = JsonSerializer.Serialize(settings, options);
+        string json = await SerializeSettingsAsync(settings, cancellationToken);
         await FileIO.WriteTextAsync(file, json);
     }
 
@@ -127,7 +127,7 @@ public sealed class FfxivTranslatorService : IFfxivTranslatorService
         }
 
         string json = await FileIO.ReadTextAsync(file);
-        Dictionary<string, string>? terms = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+        Dictionary<string, string>? terms = await DeserializeTermsAsync(json, cancellationToken);
         return terms ?? new Dictionary<string, string>();
     }
 
@@ -325,6 +325,24 @@ public sealed class FfxivTranslatorService : IFfxivTranslatorService
     public void ClearTranslationLogs()
     {
         _translationLogs.Clear();
+    }
+
+    // 在后台解析设置文件，避免大术语表启动时阻塞界面。
+    private static Task<FfxivTranslatorSettings?> DeserializeSettingsAsync(string json, CancellationToken cancellationToken)
+    {
+        return Task.Run(() => JsonSerializer.Deserialize<FfxivTranslatorSettings>(json), cancellationToken);
+    }
+
+    // 在后台生成设置文件内容，避免保存大术语表时阻塞界面。
+    private static Task<string> SerializeSettingsAsync(FfxivTranslatorSettings settings, CancellationToken cancellationToken)
+    {
+        return Task.Run(() => JsonSerializer.Serialize(settings, IndentedJsonOptions), cancellationToken);
+    }
+
+    // 在后台解析导入的术语表，避免大 JSON 导入时卡住界面。
+    private static Task<Dictionary<string, string>?> DeserializeTermsAsync(string json, CancellationToken cancellationToken)
+    {
+        return Task.Run(() => JsonSerializer.Deserialize<Dictionary<string, string>>(json), cancellationToken);
     }
 
     private sealed class ChatMessage
