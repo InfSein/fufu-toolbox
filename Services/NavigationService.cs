@@ -22,6 +22,7 @@ public static class NavigationKeys
     public const string MergeTxt = "merge-txt";
     public const string MergePdf = "merge-pdf";
     public const string XivItemTranslator = "xiv-item-translator";
+    public const string FfxivTranslator = "ffxiv-translator";
     public const string PortManagement = "port-management";
     public const string Settings = "settings";
 }
@@ -34,6 +35,7 @@ public sealed class NavigationService : INavigationService
         [NavigationKeys.MergeTxt] = typeof(MergeTxtPage),
         [NavigationKeys.MergePdf] = typeof(MergePdfPage),
         [NavigationKeys.XivItemTranslator] = typeof(XivItemTranslatorPage),
+        [NavigationKeys.FfxivTranslator] = typeof(FfxivTranslatorPage),
         [NavigationKeys.PortManagement] = typeof(PortManagementPage),
         [NavigationKeys.Settings] = typeof(SettingsPage)
     };

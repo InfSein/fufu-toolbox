@@ -80,6 +80,13 @@
                         <FontIcon Glyph="&#xE8D1;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem
+                    Content="FFXIV翻译器"
+                    Tag="ffxiv-translator">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8D1;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
             </NavigationView.MenuItems>
 
             <NavigationView.FooterMenuItems>

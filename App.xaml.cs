@@ -25,6 +25,7 @@ public partial class App : Application
             services.AddSingleton<MergeTxtViewModel>();
             services.AddSingleton<MergePdfViewModel>();
             services.AddSingleton<XivItemTranslatorViewModel>();
+            services.AddSingleton<FfxivTranslatorViewModel>();
             services.AddSingleton<PortManagementViewModel>();
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<INavigationService, NavigationService>();
@@ -32,6 +33,7 @@ public partial class App : Application
             services.AddSingleton<ITxtMergeService, TxtMergeService>();
             services.AddSingleton<IPdfMergeService, PdfMergeService>();
             services.AddSingleton<IXivItemTranslationService, XivItemTranslationService>();
+            services.AddSingleton<IFfxivTranslatorService, FfxivTranslatorService>();
             services.AddSingleton<IPortManagementService, PortManagementService>();
         })
         .Build();
